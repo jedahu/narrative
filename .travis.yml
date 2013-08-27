@@ -1,0 +1,4 @@
+language: haskell
+notifications:
+  email:
+    - jedahu@gmail.com
