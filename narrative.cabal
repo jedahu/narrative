@@ -29,6 +29,7 @@ executable narrative
     , transformers ==0.3.*
     , mtl ==2.1.*
     , parsec ==3.1.*
+    , ListLike ==4.0.*
   extensions:
     FlexibleContexts
     FlexibleInstances
