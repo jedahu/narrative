@@ -15,12 +15,35 @@ category:            Development
 build-type:          Simple
 cabal-version:       >=1.8
 
+flag tests
+  description: build test executable
+  default: False
+
 executable narrative
   -- main-is:             
   main-is: Main.hs
   -- other-modules:       
   build-depends:
       base >=4.5.0
+    , QuickCheck >= 2.6
     , transformers ==0.3.*
     , mtl ==2.1.*
     , parsec ==3.1.*
+  extensions:
+    FlexibleContexts
+    FlexibleInstances
+    MultiParamTypeClasses
+    TemplateHaskell
+    OverloadedStrings
+  ghc-options: -Wall
+
+executable narrative-tests
+  main-is: Test/Main.hs
+  if !flag(tests)
+    buildable: False
+  else
+    build-depends:
+        base >=4.5.0
+      , test-framework ==0.8
+      , QuickCheck >= 2.6
+    ghc-options: -Wall
