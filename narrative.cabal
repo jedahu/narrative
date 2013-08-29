@@ -25,17 +25,17 @@ executable narrative
   -- other-modules:       
   build-depends:
       base >=4.5.0
-    , QuickCheck >= 2.6
     , transformers ==0.3.*
     , mtl ==2.1.*
     , parsec ==3.1.*
-    , ListLike ==4.0.*
+    , text ==0.11.*
   extensions:
     FlexibleContexts
     FlexibleInstances
     MultiParamTypeClasses
     TemplateHaskell
     OverloadedStrings
+    TypeSynonymInstances
   ghc-options: -Wall
 
 executable narrative-tests
@@ -45,6 +45,18 @@ executable narrative-tests
   else
     build-depends:
         base >=4.5.0
+      , transformers ==0.3.*
+      , mtl ==2.1.*
+      , parsec ==3.1.*
+      , text ==0.11.*
       , test-framework ==0.8
-      , QuickCheck >= 2.6
+      , test-framework-quickcheck2 ==0.3.*
+      , QuickCheck >=2.4 && <2.6
+    extensions:
+      FlexibleContexts
+      FlexibleInstances
+      MultiParamTypeClasses
+      TemplateHaskell
+      OverloadedStrings
+      TypeSynonymInstances
     ghc-options: -Wall

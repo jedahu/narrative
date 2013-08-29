@@ -1,4 +1,8 @@
 language: haskell
+
+script:
+  - cabal configure -f tests && cabal build && ./dist/build/narrative-tests/narrative-tests
+
 notifications:
   email:
     - jedahu@gmail.com
