@@ -1,7 +1,7 @@
 language: haskell
 
 install:
-  - cabal install --only-dependencies -f tests
+  - cabal install --only-dependencies -f tests --force-reinstalls
 
 script:
   - cabal configure -f tests && cabal build && ./dist/build/narrative-tests/narrative-tests
