@@ -1,5 +1,8 @@
 language: haskell
 
+install:
+  - cabal install --only-dependencies -f tests
+
 script:
   - cabal configure -f tests && cabal build && ./dist/build/narrative-tests/narrative-tests
 
