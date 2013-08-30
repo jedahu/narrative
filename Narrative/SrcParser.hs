@@ -5,6 +5,7 @@ import Control.Applicative
 import Control.Monad.Reader
 import Data.Monoid
 import Data.String
+import Data.Char
 import Narrative.CharSeq
 
 data Chunk s =
@@ -30,16 +31,16 @@ pprintChunk c = do
     Code x    -> mconcat x
     Ignore x  -> (mconcat . map (\(a, b) -> a <> ignoreToken r <> b)) x
 
-nlOrEof :: Stream s m Char => ParsecT s u m ()
-nlOrEof = try newline *> pure () <|> eof
+nlOrEof :: (Stream s m Char, CharSeq s) => ParsecT s u m s
+nlOrEof = try nl <|> eof *> pure (fromString "") <?> "newline or end-of-file"
 
 manyCharTill
   :: (Stream s m t, CharSeq s)
   => ParsecT s u m Char -> ParsecT s u m end -> ParsecT s u m s
 manyCharTill p end = fromString <$> manyTill p end
 
-nl :: (Stream s m Char, Monoid s, CharSeq s) => ParsecT s u m s
-nl = newline *> pure (fromString "\n")
+nl :: (Stream s m Char, CharSeq s) => ParsecT s u m s
+nl = newline *> pure (fromString "\n") <|> stream "\r\n"
 
 stream :: (Stream s m Char, CharSeq s) => s -> ParsecT s u m s
 stream s = fromString <$> string (toString s)
@@ -48,45 +49,45 @@ linePrefix :: (Stream s m Char, CharSeq s) => s -> ParsecT s u m ()
 linePrefix s = stream s *> pure ()
 
 prefixedLine
-  :: (Stream s m Char, Monoid s, CharSeq s)
+  :: (Stream s m Char, CharSeq s)
   => s -> ParsecT s u m (s, s)
 prefixedLine s = -- map (fromString *** fromString) $
   (,)
-  <$> (optional (many1 space) <* linePrefix s *> pure (fromString ""))
-  <*> (mappend <$> manyCharTill anyChar nlOrEof <*> nl)
+  <$> (manyCharTill space (try $ satisfy $ not . isSpace) <* linePrefix s *> pure (fromString ""))
+  <*> (mappend <$> manyCharTill anyChar nlOrEof <*> nlOrEof)
 
 comment
-  :: (Stream s (POR s) Char, Monoid s, CharSeq s)
+  :: (Stream s (POR s) Char, CharSeq s)
   => Parser s u (Chunk s)
 comment = do
   s <- asks commentToken
   Comment <$> many1 (prefixedLine s)
 
 ignore
-  :: (Stream s (POR s) Char, Monoid s, CharSeq s)
+  :: (Stream s (POR s) Char, CharSeq s)
   => Parser s u (Chunk s)
 ignore = do
   s <- asks ignoreToken
   Ignore <$> many1 (prefixedLine s)
 
 notCode
-  :: (Stream s (POR s) Char, Monoid s, CharSeq s)
+  :: (Stream s (POR s) Char, CharSeq s)
   => Parser s u (Chunk s)
 notCode = try comment <|> ignore
 
 code
-  :: (Stream s (POR s) Char, Monoid s, CharSeq s)
+  :: (Stream s (POR s) Char, CharSeq s)
   => Parser s u (Chunk s)
 code = fmap Code
   $ manyTill (manyCharTill anyChar nlOrEof)
   $ try notCode *> pure () <|> try eof
 
 document
-  :: (Stream s (POR s) Char, Monoid s, CharSeq s)
+  :: (Stream s (POR s) Char, CharSeq s)
   => Parser s u [(Chunk s)]
 document = manyTill (try notCode <|> code) eof
 
 chunks
-  :: (Stream s (POR s) Char, Monoid s, CharSeq s)
+  :: (Stream s (POR s) Char, CharSeq s)
   => ParserOpts s -> SourceName -> s -> Either ParseError [(Chunk s)]
 chunks os n s = runReader (runParserT document () n s) os

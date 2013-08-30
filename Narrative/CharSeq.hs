@@ -3,8 +3,9 @@ module Narrative.CharSeq where
 import Data.String
 import Data.Text as T
 import Data.Text.Lazy as L
+import Data.Monoid
 
-class IsString a => CharSeq a where
+class (IsString a, Monoid a) => CharSeq a where
   toString :: a -> String
 
 instance CharSeq T.Text where
